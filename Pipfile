@@ -7,6 +7,8 @@ name = "pypi"
 warcio = "*"
 
 [dev-packages]
+black = "==21.7b0"
+flake8 = "*"
 
 [requires]
 python_version = "3.9"
