@@ -19,6 +19,14 @@ TEXT_TYPES = [
     "application/javascript",
 ]
 
+BINARY_TYPES = [
+    "image/jpeg",
+    "image/gif",
+    "image/png",
+    "application/font-woff",
+    "font/woff2",
+]
+
 try:
     assert sys.stdout.isatty()
     from termcolor import colored
@@ -62,6 +70,17 @@ def read_warc(warc_file):
 
                     with output_filepath.open("w") as _fh:
                         _fh.write(record.content_stream().read().decode("utf-8"))
+
+                elif content_type in BINARY_TYPES:
+                    output_filepath.parent.mkdir(parents=True, exist_ok=True)
+                    with output_filepath.open("wb") as _fh:
+                        _fh.write(record.content_stream().read())
+
+                else:
+                    logging.warning(
+                        colored("Unknown content_type `%s` (skipped)!", "red"),
+                        content_type,
+                    )
 
 
 def main():
