@@ -54,7 +54,10 @@ def read_warc(warc_file):
                 output_filepath = make_path_from_uri(uri)
 
                 logging.debug(colored(uri, "green"))
-                logging.debug(colored(output_filepath, "yellow"))
+                logging.debug(
+                    colored(" → %s", "yellow"),
+                    output_filepath.relative_to(Path(OUTPUT_FOLDER).resolve()),
+                )
 
                 # WARNING: explicitly dropping, e.g. "; charset=UTF-8" here...
                 content_type = record.http_headers["content-type"].split(";")[0]
