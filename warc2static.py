@@ -4,6 +4,7 @@
 
 import argparse
 import logging
+import re
 import sys
 from pathlib import Path
 from urllib.parse import urlparse
@@ -47,6 +48,21 @@ def make_path_from_uri(uri, base_domain):
     return Path(f"{OUTPUT_FOLDER}/_/{netloc}/{path}").resolve()
 
 
+def replace_uris(content, uris, base_domain):
+
+    for uri in sorted(uris, key=len, reverse=True):
+
+        scheme, netloc, path, *_ = urlparse(uri)
+        if netloc == base_domain:
+            new_uri = path
+        else:
+            new_uri = f"/_/{netloc}/{path}"
+
+        content = re.sub(rf"\b{re.escape(uri)}\b", new_uri, content)
+
+    return content
+
+
 def read_warc(warc_file, base_domain):
 
     with open(warc_file, "rb") as stream:
@@ -80,8 +96,11 @@ def read_warc(warc_file, base_domain):
 
                     # TODO: parse content, update URLs/links?
 
+                    content = record.content_stream().read().decode("utf-8")
+                    content = replace_uris(content, uris, base_domain)
+
                     with output_filepath.open("w") as _fh:
-                        _fh.write(record.content_stream().read().decode("utf-8"))
+                        _fh.write(content)
 
                 elif content_type in BINARY_TYPES:
                     output_filepath.parent.mkdir(parents=True, exist_ok=True)
