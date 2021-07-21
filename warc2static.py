@@ -38,20 +38,22 @@ except (AssertionError, ImportError):
         return text
 
 
-def make_path_from_uri(uri):
+def make_path_from_uri(uri, base_domain):
     scheme, netloc, path, *_ = urlparse(uri)
     if path.endswith("/"):
         path += "/index.html"
-    return Path(f"{OUTPUT_FOLDER}/{netloc}/{path}").resolve()
+    if netloc == base_domain:
+        return Path(f"{OUTPUT_FOLDER}/{path}").resolve()
+    return Path(f"{OUTPUT_FOLDER}/_/{netloc}/{path}").resolve()
 
 
-def read_warc(warc_file):
+def read_warc(warc_file, base_domain):
 
     with open(warc_file, "rb") as stream:
         for record in ArchiveIterator(stream):
             if record.rec_type == "response":
                 uri = record.rec_headers["WARC-Target-URI"]
-                output_filepath = make_path_from_uri(uri)
+                output_filepath = make_path_from_uri(uri, base_domain)
 
                 logging.debug(colored(uri, "green"))
                 logging.debug(
@@ -100,6 +102,13 @@ def main():
     )
 
     parser.add_argument(
+        "--base-domain",
+        action="store",
+        required=True,
+        help="Base domain for relative links",
+    )
+
+    parser.add_argument(
         "warc",
         action="store",
         help="WARC file",
@@ -110,7 +119,7 @@ def main():
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=log_level, format="%(message)s")
 
-    read_warc(args.warc)
+    read_warc(args.warc, args.base_domain)
 
 
 if __name__ == "__main__":
