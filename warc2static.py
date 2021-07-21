@@ -58,7 +58,8 @@ def replace_uris(content, uris, base_domain):
         else:
             new_uri = f"/_/{netloc}/{path}"
 
-        content = re.sub(rf"\b{re.escape(uri)}\b", new_uri, content)
+        reg = re.escape(uri).replace(r"\&", r"(?:\&|\&#038;)")
+        content = re.sub(rf"\b{reg}\b", new_uri, content)
 
     return content
 
