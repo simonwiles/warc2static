@@ -50,6 +50,13 @@ def make_path_from_uri(uri, base_domain):
 def read_warc(warc_file, base_domain):
 
     with open(warc_file, "rb") as stream:
+        uris = [
+            record.rec_headers["WARC-Target-URI"]
+            for record in ArchiveIterator(stream)
+            if record.rec_type == "response"
+        ]
+
+    with open(warc_file, "rb") as stream:
         for record in ArchiveIterator(stream):
             if record.rec_type == "response":
                 uri = record.rec_headers["WARC-Target-URI"]
